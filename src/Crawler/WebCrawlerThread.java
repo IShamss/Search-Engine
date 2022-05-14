@@ -6,22 +6,34 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;   
 
 import java.io.IOException;   
-import java.util.HashSet;  
+import java.util.HashSet;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import utils.Constants;
+
+import com.trigonic.jrobotx.RobotExclusion;
 
 public class WebCrawlerThread {
 
 	private HashSet<String> urlLinks;   //this is a list of unique urls
+	RobotExclusion robotExclusion;
 	public WebCrawlerThread() {   //this is the constructor of the crawler
 	    this.urlLinks = new HashSet<String>();   
+	    this.robotExclusion = new RobotExclusion();
     }   
 	
-	public void getPageLinks(String URL, int depth) {
+	public void getPageLinks(String URL, int depth) throws URISyntaxException, MalformedURLException {
+		
+		//normalize the url
+		URI uri = new URI(URL);
+	    URL =  uri.normalize().toString();
+	  
 
 	    //we use the conditional statement to check whether we have already crawled the URL or not.  
 	    // we also check whether the depth reaches to MAX_DEPTH or not  
-	    if ((!urlLinks.contains(URL) && (depth < Constants.MAX_DEPTH))) {
+	    if ((!urlLinks.contains(URL)) && (depth < Constants.MAX_DEPTH)&& (robotExclusion.allows(uri.toURL(), "ShamsCrawler"))) {
 	        System.out.println(">> Depth: " + depth + " [" + URL + "]");
 	        // use try catch block for recursive process  
 	        try {
@@ -36,7 +48,6 @@ public class WebCrawlerThread {
 	            depth++;
 	            // for each extracted URL, we repeat above process  
 	            for (Element page: availableLinksOnPage) {
-
 	                // call getPageLinks() method and pass the extracted URL to it as an argument  
 	                getPageLinks(page.attr("abs:href"), depth);
 	            }
