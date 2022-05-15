@@ -66,7 +66,7 @@ public class WebCrawlerThread extends Thread {
 	            if(docContentType.equals("html")) {
 	            	// if the URL is not present in the set, we add it to the set  
 		            urlDepthLinks.add(URL);
-		            System.out.println(">> Depth: " + depth + " [" + URL + "]");
+		            System.out.println(">> Depth: " + depth + " [" + URL + "]"+ " --  "+Thread.currentThread().getName());
 		            // download the webpage
 		            LocalDateTime now = LocalDateTime.now();  
 		            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd-HH-mm-ss-SS");  
@@ -115,7 +115,7 @@ public class WebCrawlerThread extends Thread {
 				
 		try {
 			int currentCount = this.db.getPagesCount();
-			while(!this.urlLinks.isEmpty() && currentCount < Constants.MAX_CRAWLED_PAGES) {
+			while(!this.urlLinks.isEmpty() && currentCount < Constants.MAX_CRAWLED_PAGES+1) {
 				this.crawlPages(urlLinks.remove(), 0);
 			}
 		} catch (SQLException e) {
@@ -127,6 +127,8 @@ public class WebCrawlerThread extends Thread {
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		}finally {
+			System.out.println(Thread.currentThread().getName()+" terminated !");
 		}
 			
 		

@@ -35,7 +35,7 @@ public class DB implements  AutoCloseable {
     
     public void clearDb() throws SQLException {
     	System.out.println("Cleared Db!");
-    	this.modifyDb("Delete * from pages;");
+    	this.modifyDb("Delete from pages;");
     }
     
     
