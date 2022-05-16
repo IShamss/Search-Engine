@@ -8,13 +8,17 @@ import org.jsoup.select.Elements;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -31,7 +35,8 @@ public class WebCrawlerThread extends Thread {
 	private HashSet<String> urlDepthLinks;   //this is a list of unique urls using DFS on a given url
 	private Queue<String> urlLinks;
 	RobotExclusion robotExclusion;
-	static public int pagesCount = 0;
+//	static public int pagesCount = 0;
+	static AtomicInteger pagesCount = new AtomicInteger(0);
 	DB db;
 	public WebCrawlerThread(ArrayList<String> urls, DB db) {   //this is the constructor of the crawler
 	    this.urlDepthLinks = new HashSet<String>();   
@@ -40,37 +45,49 @@ public class WebCrawlerThread extends Thread {
 	    urlLinks = new LinkedList<String>(urls);
     }   
 	
-	public void crawlPages(String URL, int depth) throws URISyntaxException, MalformedURLException, SQLException {
+	public void crawlPages(String downloadUrl, int depth) throws MalformedURLException, SQLException, UnsupportedEncodingException {
 		
 		//normalize the url
-		URI uri = new URI(URL);
-	    URL =  uri.normalize().toString();
-	    
-	    int currentPagesCount = this.db.getPagesCount();
-
-	    //we use the conditional statement to check whether we have already crawled the URL or not.  
-	    // we also check whether the depth reaches to MAX_DEPTH or not  
-	    boolean insert = (!urlDepthLinks.contains(URL)) && 
-	    		(depth < Constants.MAX_DEPTH)&& 
-	    		(robotExclusion.allows(uri.toURL(), Constants.AGENT))&&
-	    		(currentPagesCount<Constants.MAX_CRAWLED_PAGES)&&
-	    		(!this.db.isUrlInDb(URL));
+//		URL = URLEncoder.encode(URL,"UTF-8");
+		URL url;
+		URI uri;
+		boolean insert;
+		try {
+			
+			url = new URL(downloadUrl);
+			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
+			downloadUrl =  uri.normalize().toString();
+			
+			int currentPagesCount = this.db.getPagesCount();
+			
+			
+			//we use the conditional statement to check whether we have already crawled the URL or not.  
+			// we also check whether the depth reaches to MAX_DEPTH or not  
+			insert = (!urlDepthLinks.contains(downloadUrl)) && 
+					(depth < Constants.MAX_DEPTH)&& 
+					(robotExclusion.allows(uri.toURL(), Constants.AGENT))&&
+					(this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES)&&
+					(!this.db.isUrlInDb(downloadUrl));
+		}catch(URISyntaxException e) {
+			System.out.println("---------> URL not valid ");
+			insert = false;;
+		}
 	    if (insert) {
 	        
 	        // use try catch block for recursive process  
 	        try {
 	            
 	            // fetch the HTML code of the given URL by using the connect() and get() method and store the result in Document  
-	            Document doc = Jsoup.connect(URL).get();
+	            Document doc = Jsoup.connect(downloadUrl).get();
 	            String docContentType = doc.documentType().name();
 	            if(docContentType.equals("html")) {
 	            	// if the URL is not present in the set, we add it to the set  
-		            urlDepthLinks.add(URL);
-		            System.out.println(">> Depth: " + depth + " [" + URL + "]"+ " --  "+Thread.currentThread().getName());
+		            urlDepthLinks.add(downloadUrl);
+		            System.out.println(">> Depth: " + depth + " [" + downloadUrl + "]"+ " --  "+Thread.currentThread().getName());
 		            // download the webpage
 		            LocalDateTime now = LocalDateTime.now();  
 		            DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MM-dd-HH-mm-ss-SS");  
-		            downloadPage(doc,dtf.format(now).toString(),URL);
+		            downloadPage(doc,dtf.format(now).toString(),downloadUrl);
 		            // we use the select() method to parse the HTML code for extracting links of other URLs and store them into Elements  
 		            Elements availableLinksOnPage = doc.select("a[href]");
 		            // increase depth  
@@ -87,7 +104,7 @@ public class WebCrawlerThread extends Thread {
 	        // handle exception  
 	        catch (IOException e) {
 	            // print exception messages  
-	            System.err.println("For '" + URL + "': " + e.getMessage());
+	            System.err.println("For '" + downloadUrl + "': " + e.getMessage());
 	        }
 	    }
 	}
@@ -98,9 +115,14 @@ public class WebCrawlerThread extends Thread {
 				writer.write(doc.html());
 				writer.close();
 				//save to DB
-				int result = this.db.insertPage(fileName, url);
-				if(result==1) {
-					this.pagesCount++;
+				if(this.pagesCount.get()< Constants.MAX_CRAWLED_PAGES) {
+					
+					int result = this.db.insertPage(fileName, url);
+					if(result==1) {
+						this.pagesCount.addAndGet(1);
+					}
+				}else {
+					return;
 				}
 				//add to order of crawling
 			} catch (IOException e) {
@@ -115,7 +137,7 @@ public class WebCrawlerThread extends Thread {
 				
 		try {
 			int currentCount = this.db.getPagesCount();
-			while(!this.urlLinks.isEmpty() && currentCount < Constants.MAX_CRAWLED_PAGES+1) {
+			while(!this.urlLinks.isEmpty() && this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES) {
 				this.crawlPages(urlLinks.remove(), 0);
 			}
 		} catch (SQLException e) {
@@ -124,7 +146,7 @@ public class WebCrawlerThread extends Thread {
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} catch (URISyntaxException e) {
+		}  catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {

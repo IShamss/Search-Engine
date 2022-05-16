@@ -1,8 +1,8 @@
 package utils;
 
 public class Constants {
-	public static final int MAX_DEPTH = 2; //this is the max depth of the crawler when crawling
-	public static final int MAX_CRAWLED_PAGES = 10; // the max number of crawled pages
+	public static final int MAX_DEPTH = 10; //this is the max depth of the crawler when crawling
+	public static final int MAX_CRAWLED_PAGES = 20; // the max number of crawled pages
 	public static final String AGENT = "ShamsAgent";
 	
 	public static final String CRAWLED_WEB_PAGES_PATH = "data/pages/";
