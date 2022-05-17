@@ -17,9 +17,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -35,6 +32,7 @@ public class WebCrawlerThread extends Thread {
 	private HashSet<String> urlDepthLinks;   //this is a list of unique urls using DFS on a given url
 	private Queue<String> urlLinks;
 	RobotExclusion robotExclusion;
+//	UrlNormalizer normalizer = new UrlNormalizer();
 //	static public int pagesCount = 0;
 	static AtomicInteger pagesCount = new AtomicInteger(0);
 	DB db;
@@ -45,33 +43,39 @@ public class WebCrawlerThread extends Thread {
 	    urlLinks = new LinkedList<String>(urls);
     }   
 	
-	public void crawlPages(String downloadUrl, int depth) throws MalformedURLException, SQLException, UnsupportedEncodingException {
+	public void crawlPages(String downloadUrl, int depth) throws MalformedURLException, SQLException, UnsupportedEncodingException, URISyntaxException {
 		
 		//normalize the url
 //		URL = URLEncoder.encode(URL,"UTF-8");
-		URL url;
-		URI uri;
+//		URL url;
+//		URI uri;
+		downloadUrl = UrlNormalizer.getNormalizedURL(downloadUrl);
+		
+		URI uri = new URI(downloadUrl);
 		boolean insert;
-		try {
+//		try {
 			
-			url = new URL(downloadUrl);
-			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
-			downloadUrl =  uri.normalize().toString();
-			
-			int currentPagesCount = this.db.getPagesCount();
+//			url = new URL(downloadUrl);
+//			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
+//			downloadUrl =  uri.normalize().toString();
 			
 			
-			//we use the conditional statement to check whether we have already crawled the URL or not.  
-			// we also check whether the depth reaches to MAX_DEPTH or not  
-			insert = (!urlDepthLinks.contains(downloadUrl)) && 
-					(depth < Constants.MAX_DEPTH)&& 
-					(robotExclusion.allows(uri.toURL(), Constants.AGENT))&&
-					(this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES)&&
-					(!this.db.isUrlInDb(downloadUrl));
-		}catch(URISyntaxException e) {
-			System.out.println("---------> URL not valid ");
-			insert = false;;
-		}
+			
+		int currentPagesCount = this.db.getPagesCount();
+		
+		
+		//we use the conditional statement to check whether we have already crawled the URL or not.  
+		// we also check whether the depth reaches to MAX_DEPTH or not  
+		insert = (!urlDepthLinks.contains(downloadUrl)) && 
+				(depth < Constants.MAX_DEPTH)&& 
+				(robotExclusion.allows(uri.toURL(), Constants.AGENT))&&
+				(this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES)&&
+				(currentPagesCount < Constants.MAX_CRAWLED_PAGES)&&
+				(!this.db.isUrlInDb(downloadUrl));
+//		}catch(URISyntaxException e) {
+//			System.out.println("---------> URL not valid ");
+//			insert = false;;
+//		}
 	    if (insert) {
 	        
 	        // use try catch block for recursive process  
@@ -137,7 +141,7 @@ public class WebCrawlerThread extends Thread {
 				
 		try {
 			int currentCount = this.db.getPagesCount();
-			while(!this.urlLinks.isEmpty() && this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES) {
+			while(!this.urlLinks.isEmpty() && this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES && currentCount< Constants.MAX_CRAWLED_PAGES) {
 				this.crawlPages(urlLinks.remove(), 0);
 			}
 		} catch (SQLException e) {
@@ -147,6 +151,9 @@ public class WebCrawlerThread extends Thread {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}finally {
