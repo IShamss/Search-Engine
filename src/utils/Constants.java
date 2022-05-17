@@ -15,4 +15,13 @@ public class Constants {
 
 	public static final String STOP_WORDS_PATH = "stop_words.txt";
 	
+	public static final int TOTAL = 0;
+	public static final int TITLE = 1;
+	public static final int H1 = 2;
+	public static final int H2 = 3;
+	public static final int H3 = 4;
+	public static final int H4 = 5;
+	public static final int H5 = 6;
+	public static final int NORMAL = 7;
+	
 }
