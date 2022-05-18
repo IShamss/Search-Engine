@@ -33,7 +33,7 @@ public class HtmlDocument {
     List<String> headings5= new ArrayList<String>();
     List<String> listTitles= new ArrayList<String>();
     List<String> title= new ArrayList<String>();
-    public double wordCount;
+    public int wordCount;
     int docId;
 
     public HtmlDocument(String documentName, int id)
@@ -330,7 +330,7 @@ public class HtmlDocument {
 
     HashMap<Integer, List<Integer>> getWords(String word)
     {
-        List<Integer> indexInfo = Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0);
+        List<Integer> indexInfo = Arrays.asList(0, 0, 0, 0, 0, 0, 0, 0, wordCount);
         Integer frequency = 0;
         if (words.containsKey(word))
         {

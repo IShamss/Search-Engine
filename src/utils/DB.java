@@ -100,7 +100,8 @@ public class DB implements  AutoCloseable {
         Integer h4 = indexInfo.get(Constants.H4);
         Integer h5 = indexInfo.get(Constants.H5);
         Integer normal = indexInfo.get(Constants.NORMAL);
-        String sql = "Insert into indexer (docId,word,total,title,h1,h2,h3,h4,h5,normal) values ("+docId+",'"+word+"',"+total+","+title+","+h1+","+h2+","+h3+","+h4+","+h5+","+normal+");";
+        Integer wordCount = indexInfo.get(Constants.WORD_COUNT);
+        String sql = "Insert into indexer (docId,word,total,title,h1,h2,h3,h4,h5,normal,doc_word_count) values ("+docId+",'"+word+"',"+total+","+title+","+h1+","+h2+","+h3+","+h4+","+h5+","+normal+", "+wordCount+");";
     	return this.modifyDb(sql);
     }
     

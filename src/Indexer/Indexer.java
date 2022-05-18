@@ -25,6 +25,7 @@ public class Indexer {
                 System.out.println("checking for updates");
                 // check if there are any new html documents to index
                 HashMap<String, HashMap<Integer, List<Integer>>> index;
+                // get the unindexed from the db
                 ResultSet idsAndFilenames = db.getUnindexed();
                 HashMap<Integer, String> idsAndFilenamesMap = new HashMap<Integer, String>();
                 while (idsAndFilenames.next()) {
@@ -150,6 +151,7 @@ public class Indexer {
             positions.add(index.getInt("h4"));
             positions.add(index.getInt("h5"));
             positions.add(index.getInt("normal"));
+            positions.add(index.getInt("doc_word_count"));
             if (!indexer.containsKey(word)) {
                 indexer.put(word, new HashMap<Integer, List<Integer>>());
             }

@@ -23,5 +23,5 @@ public class Constants {
 	public static final int H4 = 5;
 	public static final int H5 = 6;
 	public static final int NORMAL = 7;
-	
+	public static final int WORD_COUNT = 8;
 }
