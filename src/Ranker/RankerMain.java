@@ -15,8 +15,7 @@ public class RankerMain {
         Indexer indexer = new Indexer();
         HashMap<String, HashMap<Integer, List<Integer>>> index = indexer.retreiveIndexer(db);
         List<String> query = new ArrayList<String>();
-        query.add("new");
-        
+        query.add("egypt");
         Integer c = db.getPagesCount();
         Ranker ranker = new Ranker(index, query, c);
         for (Integer word : ranker.Rank())

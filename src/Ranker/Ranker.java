@@ -35,7 +35,7 @@ public class Ranker {
                 Integer normalFreq = wordInfo.get(Constants.NORMAL);
                 Integer wordCountInDoc = wordInfo.get(Constants.WORD_COUNT);
                 Double tf = (4 * titleFreq + 3 * h1Freq + 2 * h2Freq + h3Freq + h4Freq + h5Freq +normalFreq)/wordCountInDoc * 1.0;
-                Double idf =  Math.log10(wordCountInDoc/docs.size());
+                Double idf =  Math.log10(totalDocsCount/docs.size());
                 Double tf_idf = tf * idf;
                 Tuple<Integer, Double> tuple = new Tuple<Integer, Double>(doc_id, tf_idf);
                 if (query_weight.containsKey(word)) {
@@ -62,11 +62,24 @@ public class Ranker {
         }
         // sort the docs by score
         List<Integer> docs = new ArrayList<Integer>();
+        List<Double> scores = new ArrayList<Double>();
         for (Integer doc_id : doc_score.keySet()) {
             docs.add(doc_id);
+            scores.add(doc_score.get(doc_id));
         }
         // sort the docs by score descendingly
-        docs.sort((a, b) -> doc_score.get(b).compareTo(doc_score.get(a)));
+        for (int i = 0; i < scores.size() - 1; i++) {
+            for (int j = i + 1; j < scores.size(); j++) {
+                if (scores.get(i) < scores.get(j)) {
+                    Double temp = scores.get(i);
+                    scores.set(i, scores.get(j));
+                    scores.set(j, temp);
+                    Integer temp_doc = docs.get(i);
+                    docs.set(i, docs.get(j));
+                    docs.set(j, temp_doc);
+                }
+            }
+        }
         return docs;
     }
 }
