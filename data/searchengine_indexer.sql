@@ -16,30 +16,36 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Table structure for table `pages`
+-- Table structure for table `indexer`
 --
 
-DROP TABLE IF EXISTS `pages`;
+DROP TABLE IF EXISTS `indexer`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `pages` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `fileName` varchar(60) NOT NULL,
-  `url` varchar(150) NOT NULL,
-  `indexed` tinyint DEFAULT NULL,
-  PRIMARY KEY (`id`,`url`),
-  UNIQUE KEY `fileName_UNIQUE` (`fileName`),
-  UNIQUE KEY `url_UNIQUE` (`url`)
-) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE `indexer` (
+  `docId` int NOT NULL,
+  `word` varchar(45) NOT NULL,
+  `total` int DEFAULT NULL,
+  `title` int DEFAULT NULL,
+  `h1` int DEFAULT NULL,
+  `h2` int DEFAULT NULL,
+  `h3` int DEFAULT NULL,
+  `h4` int DEFAULT NULL,
+  `h5` int DEFAULT NULL,
+  `normal` int DEFAULT NULL,
+  `doc_word_count` int DEFAULT NULL,
+  PRIMARY KEY (`docId`,`word`),
+  CONSTRAINT `docId` FOREIGN KEY (`docId`) REFERENCES `pages` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `pages`
+-- Dumping data for table `indexer`
 --
 
-LOCK TABLES `pages` WRITE;
-/*!40000 ALTER TABLE `pages` DISABLE KEYS */;
-/*!40000 ALTER TABLE `pages` ENABLE KEYS */;
+LOCK TABLES `indexer` WRITE;
+/*!40000 ALTER TABLE `indexer` DISABLE KEYS */;
+/*!40000 ALTER TABLE `indexer` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
