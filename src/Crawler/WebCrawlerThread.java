@@ -51,31 +51,20 @@ public class WebCrawlerThread extends Thread {
 //		URI uri;
 		downloadUrl = UrlNormalizer.getNormalizedURL(downloadUrl);
 		
-		URI uri = new URI(downloadUrl);
-		boolean insert;
-//		try {
-			
-//			url = new URL(downloadUrl);
-//			uri = new URI(url.getProtocol(), url.getHost(), url.getPath(), url.getQuery(), null);
-//			downloadUrl =  uri.normalize().toString();
-			
-			
-			
+		URI uri = new URI(downloadUrl);		
+				
 		int currentPagesCount = this.db.getPagesCount();
 		
 		
 		//we use the conditional statement to check whether we have already crawled the URL or not.  
 		// we also check whether the depth reaches to MAX_DEPTH or not  
-		insert = (!urlDepthLinks.contains(downloadUrl)) && 
+		boolean insert = (!urlDepthLinks.contains(downloadUrl)) && 
 				(depth < Constants.MAX_DEPTH)&& 
 				(robotExclusion.allows(uri.toURL(), Constants.AGENT))&&
 				(this.pagesCount.get() < Constants.MAX_CRAWLED_PAGES)&&
 				(currentPagesCount < Constants.MAX_CRAWLED_PAGES)&&
 				(!this.db.isUrlInDb(downloadUrl));
-//		}catch(URISyntaxException e) {
-//			System.out.println("---------> URL not valid ");
-//			insert = false;;
-//		}
+
 	    if (insert) {
 	        
 	        // use try catch block for recursive process  
@@ -115,11 +104,11 @@ public class WebCrawlerThread extends Thread {
 	
 	synchronized void downloadPage(Document doc, String fileName,String url) throws SQLException {
 			try {
-				BufferedWriter writer = new BufferedWriter(new FileWriter(Constants.CRAWLED_WEB_PAGES_PATH+fileName+".html"));
-				writer.write(doc.html());
-				writer.close();
 				//save to DB
 				if(this.pagesCount.get()< Constants.MAX_CRAWLED_PAGES) {
+					BufferedWriter writer = new BufferedWriter(new FileWriter(Constants.CRAWLED_WEB_PAGES_PATH+fileName+".html"));
+					writer.write(doc.html());
+					writer.close();
 					
 					int result = this.db.insertPage(fileName, url);
 					if(result==1) {
@@ -145,18 +134,15 @@ public class WebCrawlerThread extends Thread {
 				this.crawlPages(urlLinks.remove(), 0);
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		}  catch (UnsupportedEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			
 		} catch (URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}finally {
+			
+		}catch(NullPointerException e){}
+		finally {
 			System.out.println(Thread.currentThread().getName()+" terminated !");
 		}
 			
